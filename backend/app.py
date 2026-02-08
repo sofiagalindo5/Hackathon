@@ -3,8 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from db import db
 
+<<<<<<< HEAD
 from routes.upload_routes import router as upload_router
 from routes.class_routes import router as class_router  # <-- adjust if file is class_rotes.py
+=======
+# IMPORTANT: import the router
+from routes.upload_routes import router as upload_router
+>>>>>>> 15d75c4 (added camera setting to upload notes)
 
 app = FastAPI()
 
@@ -27,5 +32,9 @@ def health():
 async def db_test():
     result = await db.test_collection.insert_one({"hello": "world"})
     doc = await db.test_collection.find_one({"_id": result.inserted_id})
+<<<<<<< HEAD
+=======
+
+>>>>>>> 15d75c4 (added camera setting to upload notes)
     doc["_id"] = str(doc["_id"])
     return {"ok": True, "inserted": doc}
