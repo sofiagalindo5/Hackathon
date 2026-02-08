@@ -101,7 +101,10 @@ export default function LoginScreen() {
           )}
         </Pressable>
 
-        <Text style={styles.linkText}>Create Account</Text>
+        <Pressable onPress={() => router.push("/signup")}>
+  <Text style={styles.linkText}>Create Account</Text>
+</Pressable>
+
       </View>
     </View>
   );
