@@ -1,17 +1,20 @@
-from fastapi import APIRouter, UploadFile, File
-from backend.services.upload_service import upload_image_and_convert_to_pdf
+from fastapi import APIRouter, UploadFile, File, HTTPException
+from services.upload_service import upload_image_and_convert_to_pdf
 
 router = APIRouter()
 
-# POST http://localhost:8000/api/upload-to-pdf
 @router.post("/upload-to-pdf")
 async def upload_to_pdf(file: UploadFile = File(...)):
-    file_bytes = await file.read()
-    result = upload_image_and_convert_to_pdf(file_bytes)
-    return result
+    try:
+        file_bytes = await file.read()
+        if not file_bytes:
+            raise HTTPException(status_code=400, detail="Empty file upload.")
 
-# What you're supposed to get
-# {
-#   "imageUrl": "https://res.cloudinary.com/.../image.jpg",
-#   "pdfUrl": "https://res.cloudinary.com/.../image.pdf"
-# }
+        result = upload_image_and_convert_to_pdf(file_bytes)
+        return result
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        # Return readable backend error to frontend
+        raise HTTPException(status_code=400, detail=str(e))
