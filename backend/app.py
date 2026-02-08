@@ -1,5 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+<<<<<<< HEAD
+=======
+from backend.database import db 
+>>>>>>> c0c6cca (Database Setup)
 
 from db import db
 
