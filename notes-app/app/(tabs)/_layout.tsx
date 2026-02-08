@@ -54,6 +54,15 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
         }}
       />
+      <Tabs.Screen
+    name="account"
+    options={{
+      title: 'Account',
+      tabBarIcon: ({ color }) => (
+        <TabBarIcon name="user" color={color} />
+      ),
+    }}
+  />
     </Tabs>
   );
 }

@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { useState } from "react";
 import {
   View,
@@ -52,9 +53,13 @@ export default function LoginScreen() {
         />
 
         {/* Login Button */}
-        <Pressable style={styles.button}>
-          <Text style={styles.buttonText}>Log In</Text>
-        </Pressable>
+        <Pressable
+  style={styles.button}
+  onPress={() => router.replace("/(tabs)")}
+>
+  <Text style={styles.buttonText}>Log In</Text>
+</Pressable>
+
 
         {/* Create Account */}
         <Text style={styles.linkText}>Create Account</Text>
