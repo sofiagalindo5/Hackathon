@@ -27,7 +27,7 @@ export default function TabLayout() {
         headerShown: useClientOnlyValue(false, true),
       }}>
       <Tabs.Screen
-        name="Search"
+        name="Home"
         
         options={{
 
@@ -51,22 +51,22 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="Scan"
+        name="Search"
         options={{
-          title: "Scan",
+          title: "Search",
           
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
         }}
       />
       <Tabs.Screen
-    name="account"
-    options={{
-      title: 'Account',
-      tabBarIcon: ({ color }) => (
-        <TabBarIcon name="user" color={color} />
-      ),
-    }}
-  />
+        name="account"
+        options={{
+          title: 'Account',
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="user" color={color} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }

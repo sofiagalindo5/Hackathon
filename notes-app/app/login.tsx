@@ -32,7 +32,7 @@ export default function LoginScreen() {
       console.log("Login success:", data);
 
       // Navigate to your actual tab screen (adjust if needed)
-      router.replace("/(tabs)/Search");
+      router.replace("/(tabs)/Home");
     } catch (err: any) {
       const message =
         err?.message === "Invalid email or password"

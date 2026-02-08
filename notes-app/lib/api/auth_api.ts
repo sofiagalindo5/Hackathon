@@ -1,5 +1,3 @@
-
-
 export async function login(email: string, password: string) {
   const res = await fetch("http://127.0.0.1:8000/auth/login", {
     method: "POST",
