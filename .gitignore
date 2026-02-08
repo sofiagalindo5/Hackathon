@@ -1,0 +1,15 @@
+# Environment variables (SECRETS)
+.env
+backend/.env
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environments (CRITICAL)
+venv/
+.venv/
+backend/venv/
+
+# OS files
+.DS_Store
