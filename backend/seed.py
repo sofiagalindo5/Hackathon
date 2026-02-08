@@ -1,6 +1,7 @@
 import asyncio
 from datetime import datetime
 from database import users_collection, classes_collection
+from services.auth_service import hash_password
 
 async def seed_db():
     # 🔥 Clear existing data (DEV ONLY)
@@ -11,12 +12,27 @@ async def seed_db():
     # Users
     # --------------------
     users = [
-        {"_id": "user_1", "name": "Alice", "email": "alice@example.com"},
-        {"_id": "user_2", "name": "Bob", "email": "bob@example.com"},
-        {"_id": "user_3", "name": "Charlie", "email": "charlie@example.com"},
-        {"_id": "user_4", "name": "Diana", "email": "diana@example.com"},
+        {
+            "email": "alice@example.com",
+            "name": "Alice",
+            "password": hash_password("password123")
+        },
+        {
+            "email": "bob@example.com",
+            "name": "Bob",
+            "password": hash_password("password123")
+        },
+        {
+            "email": "charlie@example.com",
+            "name": "Charlie",
+            "password": hash_password("password123")
+        },
+        {
+            "email": "diana@example.com",
+            "name": "Diana",
+            "password": hash_password("password123")
+        }
     ]
-
     await users_collection.insert_many(users)
 
     # --------------------
