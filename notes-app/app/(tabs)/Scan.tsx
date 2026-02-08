@@ -117,59 +117,52 @@ export default function TabTwoScreen() {
     return () => clearInterval(interval);
   };
 
-  const uploadCapturedToPdf = async () => {
-    setErrorMsg(null);
+const uploadCapturedToPdf = async () => {
+  setErrorMsg(null);
 
-    if (!capturedUri) {
-      setErrorMsg("No photo to upload.");
-      return;
+  if (!capturedUri) {
+    setErrorMsg("No photo to upload.");
+    return;
+  }
+  if (!selectedCourse) {
+    setErrorMsg("Pick a course first.");
+    return;
+  }
+
+  setProcessing(true);
+  const stopProgress = startFakeProgress();
+
+  try {
+    const formData = new FormData();
+    formData.append("file", {
+      uri: capturedUri,
+      name: `note-${Date.now()}.jpg`,
+      type: "image/jpeg",
+    } as any);
+
+    const res = await fetch(UPLOAD_ENDPOINT, {
+      method: "POST",
+      body: formData,
+      // ✅ IMPORTANT: no headers here
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Upload failed (${res.status}): ${text}`);
     }
-    if (!selectedCourse) {
-      setErrorMsg("Pick a course first.");
-      return;
-    }
 
-    setProcessing(true);
-    const stopProgress = startFakeProgress();
+    const data = (await res.json()) as UploadResult;
+    if (!data?.pdfUrl) throw new Error("Backend response missing pdfUrl.");
 
-    try {
-      const formData = new FormData();
-
-      // RN needs the file object in this shape:
-      formData.append("file", {
-        uri: capturedUri,
-        name: `note-${Date.now()}.jpg`,
-        type: "image/jpeg",
-      } as any);
-
-      const res = await fetch(UPLOAD_ENDPOINT, {
-        method: "POST",
-        body: formData,
-        headers: {
-          // Let RN set correct boundary automatically; just ensure multipart:
-          ...(Platform.OS === "web"
-            ? { "Content-Type": "multipart/form-data" }
-            : {}),
-        },
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`Upload failed (${res.status}): ${text}`);
-      }
-
-      const data = (await res.json()) as UploadResult;
-      if (!data?.pdfUrl) throw new Error("Backend response missing pdfUrl.");
-
-      setUploadResult(data);
-      setProgress(100);
-    } catch (e) {
-      setErrorMsg(String(e));
-    } finally {
-      stopProgress();
-      setProcessing(false);
-    }
-  };
+    setUploadResult(data);
+    setProgress(100);
+  } catch (e) {
+    setErrorMsg(String(e));
+  } finally {
+    stopProgress();
+    setProcessing(false);
+  }
+};
 
   const openPdf = async () => {
     if (!uploadResult?.pdfUrl) return;

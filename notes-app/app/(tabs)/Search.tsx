@@ -1,45 +1,88 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
+  FlatList,
   StyleSheet,
   TextInput,
-  FlatList,
   TouchableOpacity,
 } from "react-native";
 
 import { Text, View } from "@/components/Themed";
 
-interface Course {
+type ClassOut = {
+  id: string;
   name: string;
-  code: string;
-  emoji: string;
-  term: string;
-}
+  users: string[];
+  photos: string[];
+};
 
-const allCourses: Course[] = [
-  { name: "Mathematics", code: "MATH 101", emoji: "📐", term: "Spring 2026" },
-  { name: "History", code: "HIST 204", emoji: "📚", term: "Spring 2026" },
-  { name: "Chemistry", code: "CHEM 301", emoji: "🧪", term: "Spring 2026" },
-  { name: "Literature", code: "LIT 150", emoji: "📖", term: "Spring 2026" },
-  { name: "Physics", code: "PHYS 201", emoji: "⚛️", term: "Spring 2026" },
-  { name: "Biology", code: "BIO 110", emoji: "🧬", term: "Spring 2026" },
-  { name: "Computer Science", code: "CS 202", emoji: "💻", term: "Spring 2026" },
-  { name: "Psychology", code: "PSY 101", emoji: "🧠", term: "Spring 2026" },
-  { name: "Economics", code: "ECON 301", emoji: "📊", term: "Spring 2026" },
-  { name: "Art History", code: "ART 205", emoji: "🎨", term: "Spring 2026" },
-];
+// ✅ Use your laptop IP (same one you used for upload)
+const API_BASE_URL = "http://10.138.238.192:8000";
+const SEARCH_ENDPOINT = `${API_BASE_URL}/api/classes/search`;
+
+function emojiForCourseName(name: string) {
+  const n = name.toLowerCase();
+  if (n.includes("math")) return "📐";
+  if (n.includes("bio")) return "🧬";
+  if (n.includes("chem")) return "🧪";
+  if (n.includes("phys")) return "⚛️";
+  if (n.includes("cs") || n.includes("computer")) return "💻";
+  if (n.includes("psych")) return "🧠";
+  if (n.includes("econ")) return "📊";
+  if (n.includes("art")) return "🎨";
+  if (n.includes("hist")) return "📚";
+  if (n.includes("lit")) return "📖";
+  return "📘";
+}
 
 export default function TabOneScreen() {
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredCourses = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return [];
-    return allCourses.filter(
-      (course) =>
-        course.name.toLowerCase().includes(q) ||
-        course.code.toLowerCase().includes(q)
-    );
-  }, [searchQuery]);
+  const [results, setResults] = useState<ClassOut[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const q = useMemo(() => searchQuery.trim(), [searchQuery]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      if (!q) {
+        setResults([]);
+        setLoading(false);
+        setErrorMsg(null);
+        return;
+      }
+
+      setLoading(true);
+      setErrorMsg(null);
+
+      try {
+        // ✅ debounce so we don’t spam backend on every keystroke
+        await new Promise((r) => setTimeout(r, 300));
+        if (cancelled) return;
+
+        const url = `${SEARCH_ENDPOINT}?name=${encodeURIComponent(q)}`;
+        const res = await fetch(url);
+
+        const text = await res.text();
+        if (!res.ok) throw new Error(`Search failed (${res.status}): ${text}`);
+
+        const data = JSON.parse(text) as ClassOut[];
+        if (!cancelled) setResults(Array.isArray(data) ? data : []);
+      } catch (e) {
+        if (!cancelled) setErrorMsg(String(e));
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [q]);
 
   return (
     <View style={styles.container}>
@@ -48,7 +91,7 @@ export default function TabOneScreen() {
         <Text style={styles.title}>Search Courses</Text>
 
         <TextInput
-          placeholder="Search by course name or code..."
+          placeholder="Search by course name..."
           value={searchQuery}
           onChangeText={setSearchQuery}
           style={styles.input}
@@ -60,41 +103,62 @@ export default function TabOneScreen() {
 
       {/* Results */}
       <View style={styles.content}>
-        {searchQuery.trim() === "" ? (
+        {q === "" ? (
           <View style={styles.center}>
             <Text style={styles.emoji}>🔍</Text>
             <Text style={styles.helperText}>
               Search for a course to get started!
             </Text>
           </View>
-        ) : filteredCourses.length === 0 ? (
+        ) : loading ? (
+          <View style={styles.center}>
+            <ActivityIndicator />
+            <Text style={[styles.helperText, { marginTop: 10 }]}>
+              Searching…
+            </Text>
+          </View>
+        ) : errorMsg ? (
+          <View style={styles.center}>
+            <Text style={styles.emoji}>⚠️</Text>
+            <Text style={styles.helperText}>Search error</Text>
+            <Text style={styles.subText}>{errorMsg}</Text>
+          </View>
+        ) : results.length === 0 ? (
           <View style={styles.center}>
             <Text style={styles.emoji}>😕</Text>
             <Text style={styles.helperText}>No courses found</Text>
-            <Text style={styles.subText}>Try searching with different keywords</Text>
+            <Text style={styles.subText}>
+              Try searching with different keywords
+            </Text>
           </View>
         ) : (
           <>
             <Text style={styles.resultCount}>
-              Found {filteredCourses.length}{" "}
-              {filteredCourses.length === 1 ? "course" : "courses"}
+              Found {results.length} {results.length === 1 ? "course" : "courses"}
             </Text>
 
             <FlatList
-              data={filteredCourses}
-              keyExtractor={(item) => item.code}
+              data={results}
+              keyExtractor={(item) => item.id}
               numColumns={2}
               columnWrapperStyle={{ gap: 12 }}
               contentContainerStyle={{ gap: 12 }}
               renderItem={({ item }) => (
                 <TouchableOpacity style={styles.card} activeOpacity={0.85}>
                   <View style={styles.cardTop}>
-                    <Text style={styles.cardEmoji}>{item.emoji}</Text>
+                    <Text style={styles.cardEmoji}>
+                      {emojiForCourseName(item.name)}
+                    </Text>
                   </View>
+
                   <View style={styles.cardBody}>
                     <Text style={styles.cardTitle}>{item.name}</Text>
-                    <Text style={styles.cardCode}>{item.code}</Text>
-                    <Text style={styles.cardTerm}>{item.term}</Text>
+
+                    {/* You don’t have "code" and "term" from backend, so show useful backend info instead */}
+                    <Text style={styles.cardCode}>ID: {item.id.slice(0, 8)}…</Text>
+                    <Text style={styles.cardTerm}>
+                      {item.users?.length ?? 0} members
+                    </Text>
                   </View>
                 </TouchableOpacity>
               )}
@@ -138,6 +202,7 @@ const styles = StyleSheet.create({
   center: {
     alignItems: "center",
     marginTop: 40,
+    paddingHorizontal: 14,
   },
   emoji: {
     fontSize: 48,
@@ -146,11 +211,13 @@ const styles = StyleSheet.create({
   helperText: {
     fontSize: 16,
     color: "#A855F7",
+    textAlign: "center",
   },
   subText: {
     fontSize: 14,
     color: "#C084FC",
     marginTop: 4,
+    textAlign: "center",
   },
   resultCount: {
     color: "#9333EA",
