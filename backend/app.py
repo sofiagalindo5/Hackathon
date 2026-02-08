@@ -1,11 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from db import db
+from database import db
 
 
 from routes.upload_routes import router as upload_router
-from routes.class_routes import router as class_router  # <-- adjust if file is class_rotes.py
+from routes.class_routes import router as class_router 
 
 
 
