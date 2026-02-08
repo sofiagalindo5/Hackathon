@@ -30,7 +30,7 @@ const COURSES: Course[] = [
  * - If you're running on a phone (Expo Go), "localhost" will NOT point to your laptop.
  * - Replace this with your computer's LAN IP, e.g. http://192.168.1.23:8000
  */
-const API_BASE_URL = "http://10.138.238.192:8000";
+const API_BASE_URL = "http://10.136.226.189:8000";
 const UPLOAD_ENDPOINT = `${API_BASE_URL}/api/upload-to-pdf`;
 
 type UploadResult = { imageUrl: string; pdfUrl: string };

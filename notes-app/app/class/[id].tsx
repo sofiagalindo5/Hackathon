@@ -9,7 +9,7 @@ import {
 import { useLocalSearchParams } from "expo-router";
 import { Text, View } from "@/components/Themed";
 
-const API_BASE_URL = "http://10.138.238.192:8000";
+const API_BASE_URL = "http://10.136.226.189:8000";
 const NOTES_ENDPOINT = `${API_BASE_URL}/api/notes`;
 
 type Note = {
