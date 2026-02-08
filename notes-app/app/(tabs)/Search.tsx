@@ -23,9 +23,10 @@ type ClassOut = {
 
 const API_BASE_URL = "http://10.136.226.189:8000";
 const SEARCH_ENDPOINT = `${API_BASE_URL}/api/classes/search`;
-
-// TEMP until login is wired in
-const CURRENT_USER_ID = getCurrentUser().userId;
+const getCurrentUserId = () => {
+  const user = getCurrentUser();
+  return user.userId || user.email;
+};
 
 function emojiForCourseName(name: string) {
   const n = name.toLowerCase();
@@ -71,8 +72,9 @@ export default function SearchScreen() {
   };
 
   const joinClass = async (classId: string) => {
+    const userId = getCurrentUserId();
     const url = `${API_BASE_URL}/api/classes/${classId}/join?user_id=${encodeURIComponent(
-      CURRENT_USER_ID
+      userId
     )}`;
     const res = await fetch(url, { method: "POST" });
     const text = await res.text();
@@ -114,7 +116,7 @@ export default function SearchScreen() {
   }, [q]);
 
   const onTapClass = (item: ClassOut) => {
-    const isMember = isUserInClass(item.users, CURRENT_USER_ID);
+    const isMember = isUserInClass(item.users, getCurrentUserId());
 
     if (isMember) {
       router.push(`/class/${item.id}`);
@@ -140,7 +142,7 @@ export default function SearchScreen() {
                 ...c,
                 users: [
                   ...(Array.isArray(c.users) ? c.users : []),
-                  CURRENT_USER_ID,
+                  getCurrentUserId(),
                 ],
               }
             : c
@@ -216,7 +218,7 @@ export default function SearchScreen() {
               columnWrapperStyle={{ gap: 12 }}
               contentContainerStyle={{ gap: 12 }}
               renderItem={({ item }) => {
-                const isMember = isUserInClass(item.users, CURRENT_USER_ID);
+                const isMember = isUserInClass(item.users, getCurrentUserId());
 
                 return (
                   <TouchableOpacity

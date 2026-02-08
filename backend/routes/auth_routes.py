@@ -17,12 +17,19 @@ async def signup(user: UserCreate):
 
     new_user = {
         "email": user.email,
-        "password": hashed_pw
+        "password": hashed_pw,
+        "name": getattr(user, "name", None),
+        "phone": getattr(user, "phone", None),
     }
 
     await users_collection.insert_one(new_user)
 
-    return {"message": "Signup successful"}
+    return {
+        "message": "Signup successful",
+        "email": new_user.get("email"),
+        "name": new_user.get("name"),
+        "phone": new_user.get("phone"),
+    }
 
 # POST (Validate a user)
 @router.post("/login")

@@ -1,6 +1,7 @@
 import { router } from "expo-router";
-import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
+import { View, Text, TextInput, Pressable, StyleSheet, Alert } from "react-native";
 import { useState } from "react";
+import { signup } from "../lib/api/auth_api";
 
 export default function Signup() {
   const [fullName, setFullName] = useState("");
@@ -16,6 +17,7 @@ export default function Signup() {
       <TextInput
         style={styles.input}
         placeholder="Full Name"
+        placeholderTextColor="#C4B5FD"
         value={fullName}
         onChangeText={setFullName}
       />
@@ -23,6 +25,7 @@ export default function Signup() {
       <TextInput
         style={styles.input}
         placeholder="Phone Number"
+        placeholderTextColor="#C4B5FD"
         value={phone}
         onChangeText={setPhone}
         keyboardType="phone-pad"
@@ -31,6 +34,7 @@ export default function Signup() {
       <TextInput
         style={styles.input}
         placeholder="Email"
+        placeholderTextColor="#C4B5FD"
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
@@ -39,6 +43,7 @@ export default function Signup() {
       <TextInput
         style={styles.input}
         placeholder="Password"
+        placeholderTextColor="#C4B5FD"
         secureTextEntry
         value={password}
         onChangeText={setPassword}
@@ -47,6 +52,7 @@ export default function Signup() {
       <TextInput
         style={styles.input}
         placeholder="Confirm Password"
+        placeholderTextColor="#C4B5FD"
         secureTextEntry
         value={confirmPassword}
         onChangeText={setConfirmPassword}
@@ -54,7 +60,24 @@ export default function Signup() {
 
       <Pressable
         style={styles.button}
-        onPress={() => router.replace("/login")}
+        onPress={async () => {
+          if (!fullName.trim() || !email.trim() || !password.trim()) {
+            Alert.alert("Missing info", "Name, email, and password are required.");
+            return;
+          }
+          if (password !== confirmPassword) {
+            Alert.alert("Passwords don't match", "Please re-enter your password.");
+            return;
+          }
+
+          try {
+            await signup(email.trim(), password, fullName.trim(), phone.trim());
+            Alert.alert("Account created", "You can now log in.");
+            router.replace("/login");
+          } catch (e) {
+            Alert.alert("Signup failed", String(e));
+          }
+        }}
       >
         <Text style={styles.buttonText}>Sign Up</Text>
       </Pressable>

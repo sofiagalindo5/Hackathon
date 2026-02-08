@@ -7,6 +7,7 @@ import {
   Linking,
   Platform,
   ActivityIndicator,
+  TextInput,
 } from "react-native";
 
 import { Text, View } from "@/components/Themed";
@@ -29,7 +30,7 @@ interface Course {
  */
 const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://10.136.226.189:8000";
-const UPLOAD_ENDPOINT = `${API_BASE_URL}/api/upload-to-pdf`;
+const UPLOAD_ENDPOINT = `${API_BASE_URL}/api/upload-to-pdf-and-save`;
 const CLASSES_ENDPOINT = `${API_BASE_URL}/api/classes`;
 
 type UploadResult = { imageUrl: string; pdfUrl: string };
@@ -49,6 +50,7 @@ export default function TabTwoScreen() {
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [coursesLoading, setCoursesLoading] = useState(false);
+  const [summaryText, setSummaryText] = useState("");
 
   // Results from backend
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
@@ -94,6 +96,7 @@ export default function TabTwoScreen() {
     setUploadResult(null);
     setSelectCourse(false);
     setSelectedCourse(null);
+    setSummaryText("");
 
     try {
       if (!cameraRef.current) {
@@ -125,6 +128,7 @@ export default function TabTwoScreen() {
     setSelectCourse(false);
     setSelectedCourse(null);
     setUploadResult(null);
+    setSummaryText("");
     setErrorMsg(null);
   };
 
@@ -163,11 +167,31 @@ const uploadCapturedToPdf = async () => {
 
   try {
     const formData = new FormData();
-    formData.append("file", {
-      uri: capturedUri,
-      name: `note-${Date.now()}.jpg`,
-      type: "image/jpeg",
-    } as any);
+    const filename = `note-${Date.now()}.jpg`;
+
+    if (Platform.OS === "web") {
+      const response = await fetch(capturedUri);
+      const blob = await response.blob();
+      const file = new File([blob], filename, {
+        type: blob.type || "image/jpeg",
+      });
+      formData.append("file", file);
+    } else {
+      formData.append("file", {
+        uri: capturedUri,
+        name: filename,
+        type: "image/jpeg",
+      } as any);
+    }
+
+    const metadata = {
+      class_id: selectedCourse.id,
+      uploaded_by: getCurrentUser().userId,
+      summary:
+        summaryText.trim() || `Scan from ${selectedCourse.name}`,
+    };
+
+    formData.append("metadata", JSON.stringify(metadata));
 
     const res = await fetch(UPLOAD_ENDPOINT, {
       method: "POST",
@@ -322,6 +346,15 @@ const uploadCapturedToPdf = async () => {
               )}
 
               {selectedCourse && (
+                <>
+                  <TextInput
+                    value={summaryText}
+                    onChangeText={setSummaryText}
+                    placeholder="Add a quick summary (optional)"
+                    placeholderTextColor="#A78BFA"
+                    style={styles.summaryInput}
+                    autoCapitalize="sentences"
+                  />
                 <TouchableOpacity
                   style={[
                     styles.primaryBtn,
@@ -338,6 +371,7 @@ const uploadCapturedToPdf = async () => {
                       : `Upload to ${selectedCourse.name}`}
                   </Text>
                 </TouchableOpacity>
+                </>
               )}
             </>
           )}
@@ -494,5 +528,16 @@ const styles = StyleSheet.create({
   courseCode: {
     fontSize: 12,
     color: "#9333EA",
+  },
+  summaryInput: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#D8B4FE",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginTop: 12,
+    marginBottom: 12,
+    color: "#6B21A8",
   },
 });
