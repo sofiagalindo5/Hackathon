@@ -4,6 +4,7 @@ from backend.routes.auth_routes import router as auth_router
 from backend.routes.class_routes import router as class_router
 from backend.routes.notes_routes import router as notes_router
 from backend.routes.summary_routes import router as summary_router
+from backend.routes.upload_routes import router as upload_router
 
 
 app = FastAPI()
@@ -24,4 +25,5 @@ app.include_router(auth_router, prefix="/api")
 app.include_router(class_router, prefix="/api")
 app.include_router(notes_router, prefix="/api")
 app.include_router(summary_router, prefix="/api")
+app.include_router(upload_router, prefix="/api")
 

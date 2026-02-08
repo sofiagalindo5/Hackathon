@@ -1,9 +1,14 @@
 import os
+from datetime import datetime
+
+from bson import ObjectId
 from dotenv import load_dotenv
 
 import cloudinary
 import cloudinary.uploader
 from cloudinary.exceptions import Error as CloudinaryError
+
+from backend.database import classes_collection
 
 load_dotenv()
 
@@ -29,6 +34,8 @@ def upload_image_and_convert_to_pdf(file_bytes: bytes):
             file_bytes,
             folder="notes-app",
             resource_type="image",
+            type="upload",
+            access_mode="public",
         )
 
         public_id = upload_result.get("public_id")
@@ -47,4 +54,42 @@ def upload_image_and_convert_to_pdf(file_bytes: bytes):
     except Exception as e:
         # Anything else
         raise RuntimeError(f"Upload/convert failed: {str(e)}") from e
+
+
+async def upload_image_and_save_note(
+    file_bytes: bytes,
+    class_id: str,
+    uploaded_by: str,
+    summary: str | None = None,
+):
+    try:
+        class_obj_id = ObjectId(class_id)
+    except Exception as e:
+        raise ValueError("Invalid class_id") from e
+
+    upload_result = upload_image_and_convert_to_pdf(file_bytes)
+
+    note_id = ObjectId()
+    note_doc = {
+        "_id": note_id,
+        "imageUrl": upload_result["imageUrl"],
+        "pdfUrl": upload_result["pdfUrl"],
+        "uploadedBy": uploaded_by,
+        "uploadedAt": datetime.utcnow().isoformat(),
+        "summary": summary,
+    }
+
+    result = await classes_collection.update_one(
+        {"_id": class_obj_id},
+        {"$push": {"photos": note_doc}},
+    )
+
+    if result.matched_count == 0:
+        raise LookupError("Class not found")
+
+    return {
+        "id": str(note_id),
+        **note_doc,
+        "_id": None,
+    }
 
