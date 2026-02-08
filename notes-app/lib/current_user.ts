@@ -6,9 +6,9 @@ export type CurrentUser = {
 };
 
 let currentUser: CurrentUser = {
-  email: "sarah.johnson@university.edu",
-  name: "Sarah Johnson",
-  userId: "user_1",
+  email: "",
+  name: "",
+  userId: "",
   phone: "",
 };
 
