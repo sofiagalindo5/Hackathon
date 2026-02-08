@@ -1,30 +1,101 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TextInput,
   Pressable,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { getCurrentUser, setCurrentUser } from "@/lib/current_user";
 
 export default function AccountScreen() {
-  const [email, setEmail] = useState("sarah.johnson@university.edu");
-  const [phone, setPhone] = useState("(555) 123-4567");
+  const initialUser = getCurrentUser();
+  const [email, setEmail] = useState(initialUser.email ?? "");
+  const [phone, setPhone] = useState(initialUser.phone ?? "");
+  const [name, setName] = useState(initialUser.name ?? "");
   const [editing, setEditing] = useState<"email" | "phone" | null>(null);
   const [tempValue, setTempValue] = useState("");
+
+  const API_BASE_URL =
+    process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://10.136.226.189:8000";
+  const CURRENT_USER_EMAIL = getCurrentUser().email;
 
   const startEdit = (field: "email" | "phone") => {
     setEditing(field);
     setTempValue(field === "email" ? email : phone);
   };
 
-  const save = () => {
-    if (editing === "email") setEmail(tempValue);
-    if (editing === "phone") setPhone(tempValue);
-    setEditing(null);
+  const save = async () => {
+    const nextEmail = editing === "email" ? tempValue : email;
+    const nextPhone = editing === "phone" ? tempValue : phone;
+
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/auth/profile?email=${encodeURIComponent(email)}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: nextEmail,
+            name,
+            phone: nextPhone,
+          }),
+        }
+      );
+      const text = await res.text();
+      if (!res.ok) throw new Error(text || "Failed to update profile");
+      const data = JSON.parse(text);
+      const nextUser = {
+        email: data.email ?? nextEmail,
+        name: data.name ?? name,
+        phone: data.phone ?? nextPhone,
+      };
+      setEmail(nextUser.email);
+      setPhone(nextUser.phone ?? "");
+      setName(nextUser.name ?? "");
+      setCurrentUser(nextUser);
+      setEditing(null);
+    } catch (e) {
+      Alert.alert("Update failed", String(e));
+    }
   };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadProfile = async () => {
+      try {
+        if (!CURRENT_USER_EMAIL) {
+          return;
+        }
+
+        const res = await fetch(
+          `${API_BASE_URL}/api/auth/profile?email=${encodeURIComponent(
+            CURRENT_USER_EMAIL
+          )}`
+        );
+        const text = await res.text();
+        if (!res.ok) throw new Error(text || "Failed to load profile");
+        const data = JSON.parse(text);
+        if (cancelled) return;
+        setEmail(data.email ?? "");
+        setPhone(data.phone ?? "");
+        setName(data.name ?? name);
+      } catch (e) {
+        if (!cancelled) {
+          Alert.alert("Load failed", String(e));
+        }
+      }
+    };
+
+    loadProfile();
+    return () => {
+      cancelled = true;
+    };
+  }, [API_BASE_URL]);
 
   return (
     <View style={styles.container}>
@@ -39,7 +110,7 @@ export default function AccountScreen() {
           <Ionicons name="person" size={42} color="#A855F7" />
         </View>
 
-        <Text style={styles.name}>Sarah Johnson</Text>
+        <Text style={styles.name}>{name || "Your Name"}</Text>
         <Text style={styles.headerEmail}>{email}</Text>
       </LinearGradient>
 

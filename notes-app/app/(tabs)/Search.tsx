@@ -12,6 +12,7 @@ import {
 
 import { Text, View } from "@/components/Themed";
 import { router } from "expo-router";
+import { getCurrentUser } from "@/lib/current_user";
 
 type ClassOut = {
   id: string;
@@ -24,7 +25,7 @@ const API_BASE_URL = "http://10.136.226.189:8000";
 const SEARCH_ENDPOINT = `${API_BASE_URL}/api/classes/search`;
 
 // TEMP until login is wired in
-const CURRENT_USER_ID = "user_1";
+const CURRENT_USER_ID = getCurrentUser().userId;
 
 function emojiForCourseName(name: string) {
   const n = name.toLowerCase();

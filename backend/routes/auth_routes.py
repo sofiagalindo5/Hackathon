@@ -1,5 +1,5 @@
-from fastapi import APIRouter, HTTPException
-from backend.models.user_model import UserCreate, UserLogin
+from fastapi import APIRouter, HTTPException, Query
+from backend.models.user_model import UserCreate, UserLogin, UserProfileOut, UserProfileUpdate
 from backend.services.auth_service import hash_password, verify_password
 from backend.database import users_collection
 
@@ -36,4 +36,51 @@ async def login(user: UserLogin):
     if not verify_password(user.password, db_user["password"]):
         raise HTTPException(status_code=400, detail="Invalid email or password")
 
-    return {"message": "Login successful", "email": db_user["email"]}
+    return {
+        "message": "Login successful",
+        "email": db_user.get("email"),
+        "name": db_user.get("name"),
+        "phone": db_user.get("phone"),
+    }
+
+
+@router.get("/profile", response_model=UserProfileOut)
+async def get_profile(email: str = Query(...)):
+    db_user = await users_collection.find_one({"email": email})
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {
+        "email": db_user.get("email"),
+        "name": db_user.get("name"),
+        "phone": db_user.get("phone"),
+    }
+
+
+@router.put("/profile", response_model=UserProfileOut)
+async def update_profile(
+    profile: UserProfileUpdate,
+    email: str = Query(...),
+):
+    if profile.email != email:
+        existing = await users_collection.find_one({"email": profile.email})
+        if existing:
+            raise HTTPException(status_code=400, detail="Email already registered")
+
+    result = await users_collection.update_one(
+        {"email": email},
+        {"$set": {
+            "email": profile.email,
+            "name": profile.name,
+            "phone": profile.phone,
+        }},
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {
+        "email": profile.email,
+        "name": profile.name,
+        "phone": profile.phone,
+    }

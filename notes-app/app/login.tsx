@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { login } from "../lib/api/auth_api";
+import { setCurrentUser } from "@/lib/current_user";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -30,6 +31,13 @@ export default function LoginScreen() {
     try {
       const data = await login(email.trim(), password.trim());
       console.log("Login success:", data);
+
+      setCurrentUser({
+        email: email.trim(),
+        name: data?.name ?? "",
+        userId: data?.userId ?? email.trim(),
+        phone: data?.phone ?? "",
+      });
 
       // Navigate to your actual tab screen (adjust if needed)
       router.replace("/(tabs)/Home");

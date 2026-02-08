@@ -14,23 +14,27 @@ async def seed_db():
     users = [
         {
             "email": "alice@example.com",
-            "name": "Alice",
-            "password": hash_password("password123")
+            "name": "Alice Smith",
+            "password": hash_password("password123"),
+            "phone": "111-111-1111"
         },
         {
             "email": "bob@example.com",
-            "name": "Bob",
-            "password": hash_password("password123")
+            "name": "Bob Jenkins",
+            "password": hash_password("password123"),
+            "phone": "111-111-1111"
         },
         {
             "email": "charlie@example.com",
-            "name": "Charlie",
-            "password": hash_password("password123")
+            "name": "Charlie Chevalier",
+            "password": hash_password("password123"),
+            "phone": "111-111-1111"
         },
         {
             "email": "diana@example.com",
-            "name": "Diana",
-            "password": hash_password("password123")
+            "name": "Diana Ross",
+            "password": hash_password("password123"),
+            "phone": "111-111-1111"
         }
     ]
     await users_collection.insert_many(users)
