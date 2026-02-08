@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.database import db 
+
+from db import db
 
 # IMPORTANT: import the router
 from routes.upload_routes import router as upload_router
