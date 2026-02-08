@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException, Query
 from bson import ObjectId
 from datetime import datetime
-from backend.database import classes_collection
-from backend.models.note_model import Note, NoteCreate
+from database import classes_collection
+from models.note_model import Note, NoteCreate
+
 
 router = APIRouter(prefix="/notes", tags=["notes"])
 
