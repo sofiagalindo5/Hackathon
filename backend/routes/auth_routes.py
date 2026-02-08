@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
-from models.user_model import UserCreate, UserLogin
-from services.auth_service import hash_password, verify_password
-from ..database import users_collection
+from backend.models.user_model import UserCreate, UserLogin
+from backend.services.auth_service import hash_password, verify_password
+from backend.database import users_collection
 
 router = APIRouter()
 

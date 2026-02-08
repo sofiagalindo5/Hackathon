@@ -1,7 +1,7 @@
 import asyncio
 from datetime import datetime
-from database import users_collection, classes_collection
-from services.auth_service import hash_password
+from backend.database import users_collection, classes_collection
+from backend.services.auth_service import hash_password
 
 async def seed_db():
     # 🔥 Clear existing data (DEV ONLY)

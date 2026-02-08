@@ -1,7 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes.auth_routes import router as auth_router
-from routes import class_routes, notes_routes, summary_routes
+from backend.routes.auth_routes import router as auth_router
+from backend.routes.class_routes import router as class_router
+from backend.routes.notes_routes import router as notes_router
+from backend.routes.summary_routes import router as summary_router
+
 
 app = FastAPI()
 
@@ -18,6 +21,7 @@ def health():
     return {"status": "Backend running"}
 
 app.include_router(auth_router, prefix="/auth")
-app.include_router(class_routes.router)
-app.include_router(notes_routes.router)
-app.include_router(summary_routes.router)
+app.include_router(class_router, prefix="/class")
+app.include_router(notes_router, prefix="/notes")
+app.include_router(summary_router, prefix="/summary")
+

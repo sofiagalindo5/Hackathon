@@ -1,6 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from pydantic import BaseModel
-from ..services.summarize_service import summarize_pdf_with_gemini_vision
+from backend.services.summarize_service import summarize_pdf_with_gemini_vision
 
 router = APIRouter(prefix="/summaries", tags=["summaries"])
 

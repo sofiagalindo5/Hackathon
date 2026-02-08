@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from bson import ObjectId
 from datetime import datetime
-from ..database import classes_collection
-from ..models.class_model import ClassCreate, ClassOut
+from backend.database import classes_collection
+from backend.models.class_model import ClassCreate, ClassOut
 
 router = APIRouter(prefix="/classes", tags=["classes"])
 
