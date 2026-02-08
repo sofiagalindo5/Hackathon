@@ -10,28 +10,27 @@ import {
 } from "react-native";
 
 import { Text, View } from "@/components/Themed";
+import { getCurrentUser } from "@/lib/current_user";
 import { CameraView, useCameraPermissions } from "expo-camera";
 
 interface Course {
+  id: string;
   name: string;
-  code: string;
-  emoji: string;
+  users?: string[];
+  photos?: any[];
+  code?: string;
+  emoji?: string;
 }
-
-const COURSES: Course[] = [
-  { name: "Mathematics", code: "MATH 101", emoji: "📐" },
-  { name: "Biology", code: "BIO 110", emoji: "🧬" },
-  { name: "Chemistry", code: "CHEM 301", emoji: "🧪" },
-  { name: "Physics", code: "PHYS 201", emoji: "⚛️" },
-];
 
 /**
  * IMPORTANT:
  * - If you're running on a phone (Expo Go), "localhost" will NOT point to your laptop.
  * - Replace this with your computer's LAN IP, e.g. http://192.168.1.23:8000
  */
-const API_BASE_URL = "http://10.136.226.189:8000";
+const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://10.136.226.189:8000";
 const UPLOAD_ENDPOINT = `${API_BASE_URL}/api/upload-to-pdf`;
+const CLASSES_ENDPOINT = `${API_BASE_URL}/api/classes`;
 
 type UploadResult = { imageUrl: string; pdfUrl: string };
 
@@ -48,6 +47,8 @@ export default function TabTwoScreen() {
 
   const [selectCourse, setSelectCourse] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [coursesLoading, setCoursesLoading] = useState(false);
 
   // Results from backend
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
@@ -59,6 +60,34 @@ export default function TabTwoScreen() {
     if (!permission.granted) requestPermission();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [permission?.granted]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadCourses = async () => {
+      const userId = getCurrentUser().userId;
+      if (!userId) return;
+
+      setCoursesLoading(true);
+      try {
+        const url = `${CLASSES_ENDPOINT}?user_id=${encodeURIComponent(userId)}`;
+        const res = await fetch(url);
+        const text = await res.text();
+        if (!res.ok) throw new Error(`Load courses failed (${res.status}): ${text}`);
+        const data = JSON.parse(text) as Course[];
+        if (!cancelled) setCourses(Array.isArray(data) ? data : []);
+      } catch (e) {
+        if (!cancelled) setErrorMsg(String(e));
+      } finally {
+        if (!cancelled) setCoursesLoading(false);
+      }
+    };
+
+    loadCourses();
+    return () => {
+      cancelled = true;
+    };
+  }, [CLASSES_ENDPOINT]);
 
   const handleCapture = async () => {
     setErrorMsg(null);
@@ -262,28 +291,35 @@ const uploadCapturedToPdf = async () => {
             <>
               <Text style={styles.subtitle}>Select a Course</Text>
 
-              <FlatList
-                data={COURSES}
+              {coursesLoading ? (
+                <View style={styles.centerFull}>
+                  <ActivityIndicator />
+                  <Text style={{ marginTop: 10 }}>Loading courses…</Text>
+                </View>
+              ) : (
+                <FlatList
+                  data={courses}
                 numColumns={2}
-                keyExtractor={(item) => item.code}
+                keyExtractor={(item) => item.id}
                 columnWrapperStyle={{ gap: 12 }}
                 contentContainerStyle={{ gap: 12 }}
                 renderItem={({ item }) => (
                   <TouchableOpacity
                     style={[
                       styles.courseCard,
-                      selectedCourse?.code === item.code &&
+                      selectedCourse?.id === item.id &&
                         styles.courseSelected,
                     ]}
                     onPress={() => setSelectedCourse(item)}
                     activeOpacity={0.85}
                   >
-                    <Text style={styles.courseEmoji}>{item.emoji}</Text>
+                    <Text style={styles.courseEmoji}>📘</Text>
                     <Text style={styles.courseName}>{item.name}</Text>
-                    <Text style={styles.courseCode}>{item.code}</Text>
+                    {/* <Text style={styles.courseCode}>{item.id}</Text> */}
                   </TouchableOpacity>
                 )}
-              />
+                />
+              )}
 
               {selectedCourse && (
                 <TouchableOpacity

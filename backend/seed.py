@@ -45,7 +45,7 @@ async def seed_db():
     classes = [
         {
             "name": "Biology 101",
-            "users": ["user_1", "user_2", "user_3"],
+            "users": ["alice@example.com", "bob@example.com", "charlie@example.com"],
             "photos": [
                 {
                     "_id": "note_bio_1",
@@ -67,7 +67,7 @@ async def seed_db():
         },
         {
             "name": "CS 201 – Data Structures",
-            "users": ["user_1", "user_4"],
+            "users": ["alice@example.com", "diana@example.com"],
             "photos": [
                 {
                     "_id": "note_cs_1",
@@ -81,7 +81,7 @@ async def seed_db():
         },
         {
             "name": "Calculus II",
-            "users": ["user_2", "user_3", "user_4"],
+            "users": ["bob@example.com", "charlie@example.com", "diana@example.com"],
             "photos": [
                 {
                     "_id": "note_calc_1",
