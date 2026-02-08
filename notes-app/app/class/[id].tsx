@@ -141,7 +141,6 @@ import {
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { Text, View } from "@/components/Themed";
-import BottomNav from "@/components/BottomNav";
 
 const API_BASE_URL = "http://10.136.226.189:8000";
 const NOTES_ENDPOINT = `${API_BASE_URL}/api/notes`;
@@ -242,8 +241,6 @@ export default function ClassScreen() {
         )}
       </View>
 
-      {/* Manual bottom nav */}
-      <BottomNav />
     </View>
   );
 }
