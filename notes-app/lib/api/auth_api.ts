@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://10.138.238.192:8000"; 
+const API_BASE_URL = "http://10.136.226.189:8000"; 
 // ^ if your AUTH backend is on a different port, change it (ex: :8001)
 
 const LOGIN_ENDPOINT = `${API_BASE_URL}/api/auth/login`; 

@@ -20,8 +20,8 @@ app.add_middleware(
 def health():
     return {"status": "Backend running"}
 
-app.include_router(auth_router, prefix="/auth")
-app.include_router(class_router, prefix="/class")
-app.include_router(notes_router, prefix="/notes")
-app.include_router(summary_router, prefix="/summary")
+app.include_router(auth_router, prefix="/api")
+app.include_router(class_router, prefix="/api")
+app.include_router(notes_router, prefix="/api")
+app.include_router(summary_router, prefix="/api")
 

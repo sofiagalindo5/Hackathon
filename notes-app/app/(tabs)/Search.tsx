@@ -20,7 +20,7 @@ type ClassOut = {
   photos?: any[];
 };
 
-const API_BASE_URL = "http://10.138.238.192:8000";
+const API_BASE_URL = "http://10.136.226.189:8000";
 const SEARCH_ENDPOINT = `${API_BASE_URL}/api/classes/search`;
 
 // TEMP until login is wired in
