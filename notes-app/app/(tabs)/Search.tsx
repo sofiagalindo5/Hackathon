@@ -11,12 +11,13 @@ import {
 } from "react-native";
 
 import { Text, View } from "@/components/Themed";
+import { router } from "expo-router";
 
 type ClassOut = {
   id: string;
   name: string;
-  users: string[];
-  photos: any[];
+  users?: any[];
+  photos?: any[];
 };
 
 const API_BASE_URL = "http://10.138.238.192:8000";
@@ -31,13 +32,19 @@ function emojiForCourseName(name: string) {
   if (n.includes("bio")) return "🧬";
   if (n.includes("chem")) return "🧪";
   if (n.includes("phys")) return "⚛️";
-  if (n.includes("cs") || n.includes("computer") || n.includes("data")) return "💻";
+  if (n.includes("cs") || n.includes("computer") || n.includes("data"))
+    return "💻";
   if (n.includes("psych")) return "🧠";
   if (n.includes("econ")) return "📊";
   if (n.includes("art")) return "🎨";
   if (n.includes("hist")) return "📚";
   if (n.includes("lit") || n.includes("english")) return "📖";
   return "📘";
+}
+
+function isUserInClass(users: unknown, userId: string) {
+  if (!Array.isArray(users)) return false;
+  return users.some((u) => String(u) === userId);
 }
 
 export default function SearchScreen() {
@@ -47,8 +54,6 @@ export default function SearchScreen() {
   const [results, setResults] = useState<ClassOut[]>([]);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  const [refreshTick, setRefreshTick] = useState(0);
 
   // Join UI state
   const [selectedClass, setSelectedClass] = useState<ClassOut | null>(null);
@@ -105,13 +110,13 @@ export default function SearchScreen() {
     return () => {
       cancelled = true;
     };
-  }, [q, refreshTick]);
+  }, [q]);
 
   const onTapClass = (item: ClassOut) => {
-    const isMember = (item.users ?? []).includes(CURRENT_USER_ID);
+    const isMember = isUserInClass(item.users, CURRENT_USER_ID);
 
     if (isMember) {
-      Alert.alert("Enrolled ✅", `You're already in "${item.name}".`);
+      router.push(`/class/${item.id}`);
       return;
     }
 
@@ -125,17 +130,30 @@ export default function SearchScreen() {
     setJoinLoading(true);
     try {
       await joinClass(selectedClass.id);
-      setJoinOpen(false);
-      setSelectedClass(null);
 
-      // Refresh UI so it shows Enrolled ✅
-      setRefreshTick((t) => t + 1);
+      // Update UI immediately so it shows Enrolled ✅
+      setResults((prev) =>
+        prev.map((c) =>
+          c.id === selectedClass.id
+            ? {
+                ...c,
+                users: [
+                  ...(Array.isArray(c.users) ? c.users : []),
+                  CURRENT_USER_ID,
+                ],
+              }
+            : c
+        )
+      );
+
+      setJoinOpen(false);
 
       Alert.alert("Joined ✅", "You’re now enrolled in the class.");
     } catch (e) {
       Alert.alert("Join failed", String(e));
     } finally {
       setJoinLoading(false);
+      setSelectedClass(null);
     }
   };
 
@@ -197,7 +215,7 @@ export default function SearchScreen() {
               columnWrapperStyle={{ gap: 12 }}
               contentContainerStyle={{ gap: 12 }}
               renderItem={({ item }) => {
-                const isMember = (item.users ?? []).includes(CURRENT_USER_ID);
+                const isMember = isUserInClass(item.users, CURRENT_USER_ID);
 
                 return (
                   <TouchableOpacity
@@ -214,10 +232,10 @@ export default function SearchScreen() {
                     <View style={styles.cardBody}>
                       <Text style={styles.cardTitle}>{item.name}</Text>
                       <Text style={styles.cardCode}>
-                        {isMember ? "Enrolled ✅" : "Tap to join"}
+                        {isMember ? "Enrolled ✅ (tap to open)" : "Tap to join"}
                       </Text>
                       <Text style={styles.cardTerm}>
-                        {item.users?.length ?? 0} members
+                        {Array.isArray(item.users) ? item.users.length : 0} members
                       </Text>
                     </View>
                   </TouchableOpacity>
@@ -292,10 +310,7 @@ export default function SearchScreen() {
 
 /* Styles */
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FDF2F8",
-  },
+  container: { flex: 1, backgroundColor: "#FDF2F8" },
   header: {
     padding: 20,
     paddingBottom: 28,
@@ -303,12 +318,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 40,
     borderBottomRightRadius: 40,
   },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "white",
-    marginBottom: 12,
-  },
+  title: { fontSize: 22, fontWeight: "700", color: "white", marginBottom: 12 },
   input: {
     backgroundColor: "white",
     borderRadius: 16,
@@ -316,73 +326,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#6B21A8",
   },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  center: {
-    alignItems: "center",
-    marginTop: 40,
-    paddingHorizontal: 14,
-  },
-  emoji: {
-    fontSize: 48,
-    marginBottom: 12,
-  },
-  helperText: {
-    fontSize: 16,
-    color: "#A855F7",
-    textAlign: "center",
-  },
-  subText: {
-    fontSize: 14,
-    color: "#C084FC",
-    marginTop: 4,
-    textAlign: "center",
-  },
-  resultCount: {
-    color: "#9333EA",
-    marginBottom: 12,
-  },
-  card: {
-    flex: 1,
-    backgroundColor: "white",
-    borderRadius: 16,
-    overflow: "hidden",
-  },
+  content: { flex: 1, padding: 16 },
+  center: { alignItems: "center", marginTop: 40, paddingHorizontal: 14 },
+  emoji: { fontSize: 48, marginBottom: 12 },
+  helperText: { fontSize: 16, color: "#A855F7", textAlign: "center" },
+  subText: { fontSize: 14, color: "#C084FC", marginTop: 4, textAlign: "center" },
+  resultCount: { color: "#9333EA", marginBottom: 12 },
+  card: { flex: 1, backgroundColor: "white", borderRadius: 16, overflow: "hidden" },
   cardTop: {
     height: 64,
     backgroundColor: "#E9D5FF",
     justifyContent: "center",
     alignItems: "center",
   },
-  cardEmoji: {
-    fontSize: 28,
-  },
-  cardBody: {
-    padding: 12,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#6B21A8",
-  },
-  cardCode: {
-    fontSize: 13,
-    color: "#9333EA",
-    marginTop: 2,
-  },
-  cardTerm: {
-    fontSize: 11,
-    color: "#A855F7",
-    marginTop: 2,
-  },
+  cardEmoji: { fontSize: 28 },
+  cardBody: { padding: 12 },
+  cardTitle: { fontSize: 16, fontWeight: "700", color: "#6B21A8" },
+  cardCode: { fontSize: 13, color: "#9333EA", marginTop: 2 },
+  cardTerm: { fontSize: 11, color: "#A855F7", marginTop: 2 },
 
   // Modal
-  modalBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.35)",
-  },
+  modalBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.35)" },
   modalCard: {
     position: "absolute",
     left: 16,
@@ -392,20 +356,9 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 16,
   },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#6B21A8",
-    marginBottom: 8,
-  },
-  modalText: {
-    color: "#7C3AED",
-    marginBottom: 14,
-  },
-  modalBtns: {
-    flexDirection: "row",
-    gap: 10,
-  },
+  modalTitle: { fontSize: 18, fontWeight: "800", color: "#6B21A8", marginBottom: 8 },
+  modalText: { color: "#7C3AED", marginBottom: 14 },
+  modalBtns: { flexDirection: "row", gap: 10 },
   modalCancel: {
     flex: 1,
     height: 48,
@@ -415,10 +368,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  modalCancelText: {
-    color: "#7C3AED",
-    fontWeight: "800",
-  },
+  modalCancelText: { color: "#7C3AED", fontWeight: "800" },
   modalJoin: {
     flex: 1,
     height: 48,
@@ -427,15 +377,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  modalJoinText: {
-    color: "white",
-    fontWeight: "800",
-  },
-  disabledBtn: {
-    opacity: 0.6,
-  },
+  modalJoinText: { color: "white", fontWeight: "800" },
+  disabledBtn: { opacity: 0.6 },
 });
-
 
 
 
