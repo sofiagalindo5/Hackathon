@@ -7,31 +7,57 @@ import {
   Image,
   Pressable,
   StyleSheet,
+  ActivityIndicator,
 } from "react-native";
+import { login } from "../lib/api/auth_api";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const onLogin = async () => {
+    setError("");
+    setLoading(true);
+
+    if (!email.trim() || !password.trim()) {
+      setError("Email and password are required");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const data = await login(email.trim(), password.trim());
+      console.log("Login success:", data);
+
+      // Navigate to your actual tab screen (adjust if needed)
+      router.replace("/(tabs)/Search");
+    } catch (err: any) {
+      const message =
+        err?.message === "Invalid email or password"
+          ? "Invalid email or password"
+          : "Unable to connect. Try again.";
+
+      setError(message);
+    }
+
+    setLoading(false);
+  };
 
   return (
     <View style={styles.container}>
-      {/* Logo / Mascot */}
       <Image
         source={require("../assets/images/mascot.png")}
         style={styles.logo}
       />
 
-      {/* App Title */}
       <Text style={styles.title}>Noted</Text>
-      <Text style={styles.subtitle}>
-        Scan & share notes with classmates!
-      </Text>
+      <Text style={styles.subtitle}>Scan & share notes with classmates!</Text>
 
-      {/* Login Card */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Welcome Back! 👋</Text>
 
-        {/* Email */}
         <Text style={styles.label}>Email</Text>
         <TextInput
           style={styles.input}
@@ -42,7 +68,6 @@ export default function LoginScreen() {
           keyboardType="email-address"
         />
 
-        {/* Password */}
         <Text style={styles.label}>Password</Text>
         <TextInput
           style={styles.input}
@@ -52,16 +77,22 @@ export default function LoginScreen() {
           onChangeText={setPassword}
         />
 
-        {/* Login Button */}
+        {error.length > 0 && (
+          <Text style={{ color: "red", marginBottom: 8 }}>{error}</Text>
+        )}
+
         <Pressable
-  style={styles.button}
-  onPress={() => router.replace("/(tabs)")}
->
-  <Text style={styles.buttonText}>Log In</Text>
-</Pressable>
+          style={[styles.button, loading && { opacity: 0.7 }]}
+          onPress={onLogin}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text style={styles.buttonText}>Log In</Text>
+          )}
+        </Pressable>
 
-
-        {/* Create Account */}
         <Text style={styles.linkText}>Create Account</Text>
       </View>
     </View>
