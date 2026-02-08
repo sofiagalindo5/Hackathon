@@ -1,12 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from database import db
+from backend.database import db
 
 
-from routes.upload_routes import router as upload_router
-from routes.class_routes import router as class_router  # <-- adjust if file is class_rotes.py
-from routes.notes_routes import router as notes_router
+from backend.routes.upload_routes import router as upload_router
+from backend.routes.class_routes import router as class_router  # <-- adjust if file is class_rotes.py
+from backend.routes.notes_routes import router as notes_router
+from backend.routes.auth_routes import router as auth_router
 
 
 
@@ -23,6 +24,7 @@ app.add_middleware(
 app.include_router(upload_router, prefix="/api", tags=["upload"])
 app.include_router(class_router, prefix="/api", tags=["classes"])
 app.include_router(notes_router, prefix="/api", tags=["notes"])
+app.include_router(auth_router, prefix="/api", tags=["auth"])
 
 
 @app.get("/")
