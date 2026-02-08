@@ -6,6 +6,27 @@ from backend.models.class_model import ClassCreate, ClassOut
 
 router = APIRouter(prefix="/classes", tags=["classes"])
 
+
+# join a class 
+@router.post("/{class_id}/join")
+async def join_class(class_id: str, user_id: str):
+    try:
+        class_obj_id = ObjectId(class_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid class_id")
+
+    # Add user only if not already in the list
+    result = await classes_collection.update_one(
+        {"_id": class_obj_id},
+        {"$addToSet": {"users": user_id}}
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Class not found")
+
+    # If modified_count == 0, user was already a member (not an error)
+    return {"message": "Joined class (or already a member)"} 
+
 # POST a class
 @router.post("", response_model=ClassOut)
 async def create_class(class_data: ClassCreate):
