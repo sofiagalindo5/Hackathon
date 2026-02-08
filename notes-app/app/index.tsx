@@ -1,9 +1,16 @@
-import { View, Text } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
+import OwlLogo from "@/components/OwlLogo";
 
-export default function Home() {
+export default function HomeScreen() {
   return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      <Text>Home Screen</Text>
+    <View style={styles.container}>
+      <OwlLogo />
+      <Text style={styles.title}>Welcome to Notes App 🦉</Text>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, alignItems: "center", justifyContent: "center" },
+  title: { fontSize: 22, fontWeight: "700" },
+});
