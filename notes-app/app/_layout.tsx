@@ -1,12 +1,3 @@
-import { Stack } from "expo-router";
-
-export default function RootLayout() {
-  return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(tabs)" />
-    </Stack>
-  );
-}
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
@@ -22,10 +13,6 @@ export {
   ErrorBoundary,
 } from 'expo-router';
 
-<<<<<<< HEAD
-
-=======
->>>>>>> testingtitles
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -59,20 +46,14 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen
-<<<<<<< HEAD
-          name="login"
-          options={{ headerShown: false }}
-        />
-=======
-         name="login"
-         options={{ headerShown: false }}
-       />
->>>>>>> testingtitles
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-      </Stack>
+<Stack>
+  <Stack.Screen
+    name="login"
+    options={{ headerShown: false }}
+  />
+  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+  <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+</Stack>
     </ThemeProvider>
   );
 }
